@@ -25,6 +25,9 @@ public class StreetDaoImpl implements StreetDao {
     private String GET_STREETS_BY_NAME_SQL;
     @Value("${getRoute.sql}")
     private String GET_ROUTE_SQL;
+    @Value("${getSearchSegment.sql}")
+    private String SEARCH_SEGMENT_SQL;
+
 
     public StreetDaoImpl(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -44,7 +47,7 @@ public class StreetDaoImpl implements StreetDao {
     }
 
     @Override
-    public List<Street> getRouteByDijkstra(int source, int target) {
+    public List<Street> getRouteByDijkstra(Long source, Long target) {
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
         sqlParameterSource.addValue("source", source);
         sqlParameterSource.addValue("target", target);
@@ -52,6 +55,14 @@ public class StreetDaoImpl implements StreetDao {
     }
 
     @Override
+    public Street searchSegment(String lon, String lat) {
+        MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
+        sqlParameterSource.addValue("lon", lon);
+        sqlParameterSource.addValue("lat", lat);
+        return namedParameterJdbcTemplate.queryForObject(SEARCH_SEGMENT_SQL, sqlParameterSource, new StreetRowMapper());
+    }
+
+    /*@Override
     public List<Street> getRouteByDijkstra(String name1, String name2) {
         SqlParameterSource sqlParameterSource1 = new MapSqlParameterSource("name", name1);
         SqlParameterSource sqlParameterSource2 = new MapSqlParameterSource("name", name2);
@@ -64,8 +75,7 @@ public class StreetDaoImpl implements StreetDao {
                 sqlParameterSource2,
                 new StreetRowMapper());
         return getRouteByDijkstra(sourceStreet.get(0).getSource(), targetStreet.get(0).getTarget());
-    }
-
+    }*/
 
 
     private class StreetRowMapper implements RowMapper<Street> {
@@ -75,9 +85,9 @@ public class StreetDaoImpl implements StreetDao {
                     resultSet.getLong("osm_id"),
                     resultSet.getString("name"),
                     resultSet.getString("coords"),
-                    resultSet.getInt("source"),
-                    resultSet.getInt("target"),
-                    resultSet.getInt("node"));
+                    resultSet.getLong("source"),
+                    resultSet.getLong("target")
+                   /* resultSet.getInt("node")*/);
             return street;
         }
     }

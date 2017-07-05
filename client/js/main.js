@@ -1,10 +1,7 @@
 $(document).ready(function(){
-    var POINTS_TOURISM_URL = "http://localhost:8088/point/tourism/";
-    var POINTS_AMENITY_URL = "http://localhost:8088/point/amenity/";
-    var POINTS_HISTORIC_URL = "http://localhost:8088/point/historic/";
-    var POINTS_SHOP_URL = "http://localhost:8088/point/shop/";
-    var POINTS_LEISURE_URL = "http://localhost:8088/point/leisure/";
-    var STREETS_URL = "http://localhost:8088/streets";
+    var STREETS_URL = "http://localhost:8088/streets/";
+    var POINT_URL = "http://localhost:8088/point/"
+
 
     url = "http://{s}.localhost:8088/tile/{z}/{x}/{y}.png"
 	var map = L.map('map', {
@@ -12,7 +9,7 @@ $(document).ready(function(){
         center: [52.096046, 23.734529],
         zoom: 14
     });
-    //add zoom control with your options
+
     L.control.zoom({
          position:'topright'
     }).addTo(map);
@@ -29,59 +26,96 @@ $(document).ready(function(){
 	    return "" + zoom + "/" + xtile + "/" + ytile;
 	}
 
+ // cd READY/Диплом/Измененные/map/
+
+
 	L.tileLayer(url, {
 	    maxZoom: 18
 	}).addTo(map);
 
-    var tag;
-    var value;
-
-    $('#SearchBtn').click(function () {
-        setTagAndValue();
-        console.log(tag);
-        if(tag == 'tourism'){
-            getPointsByTourism();
-        }
-        if(tag == 'historic'){
-            getPointsByHistoric();
-        }
-        if(tag == 'shop'){
-            getPointsByShop();
-        }
-        if(tag == 'amenity'){
-            getPointsByAmenity();
-        }
-        if(tag == 'leisure'){
-            getPointsByLeisure();
-        }
-        getStreets();
-    });
-
-    $('')
-    $('#place').click(function () {
-        $("#place").val("")
-        tag = null;
-        value = null;
-    });
-
     function displayLocation(position) {
-        var lat = position.coords.latitude;
-        var lng = position.coords.longitude;
+
+    var lat = 52.06529;
+    var lng = 23.74298;
+
+    var lat1 = 52.10009;
+    var lng1 = 23.77508;
+    //var lat = position.coords.latitude;
+    //var lng = position.coords.longitude;
+        console.log(lat + " : " + lng);
         L.marker([lat, lng]).addTo(map);
+        L.marker([lat1, lng1]).addTo(map);
         map.setView([lat, lng], 14);
     }
 
     navigator.geolocation.getCurrentPosition(displayLocation);
 
+	var source;
+	var target;
+
+	$('#SearchRouteBtn').click(function () {
+	    source = $('#source').val();
+	    target = $('#target').val();
+	    console.log(typeof(+source) + " : " + typeof(+target));
+
+        getLineStreets();
+
+	});
+
+
+    var firstCoords;
+    var secondCoords;
+
+	$('#SearchSegmentBtn').click(function() {
+	    firstCoords = $('firstCoords').val();
+	    secondCoords = $('secondCoords').val();
+	    console.log(firstCoords + " : " + secondCoords);
+
+	    getLineSegment();
+	 })
+
+
+    function getLineSegment() {
+        console.log('getLineSegment');
+        $.ajax({
+            type: 'GET',
+            url: POINT_URL + firstCoords + "/" + secondCoords,
+            dataType: "json",
+            success: renderStreets,
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, textStatus, errorThrown);
+                alert('findAll: ' + textStatus);
+            }
+        })
+    }
+
+	function getLineStreets() {
+                console.log('getLineStreets');
+                $.ajax({
+                    type: 'GET',
+                    url: STREETS_URL + +source + "/" + +target,
+                    dataType: "json", // data type of response
+                    success: renderStreets,
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR, textStatus, errorThrown);
+                        alert('findAll: ' + textStatus);
+                    }
+                });
+        }
+
+    var tag;
+    var value;
+
     var polylines = new Array();
     var marker = new Array();
+
     function renderMarkers(data) {
             for(i=0;i<marker.length;i++) {
                 map.removeLayer(marker[i]);
                 }
             dto = data == null ? [] : (data instanceof Array ? data : [data]);
-            $.each(dto, function (index, point) {
-                addMarker(point);
+            $.each(dto, function (index, street) {
+                addMarker(street);
             });
     }
 
@@ -99,21 +133,18 @@ $(document).ready(function(){
                     }
         dto = data == null ? [] : (data instanceof Array ? data : [data]);
         $.each(dto, function (index, street) {
-            if(street.interestObjectsQuantity > max)
-                max = street.interestObjectsQuantity;
-         });
-        $.each(dto, function (index, street) {
             drawLine(street);
          });
 
     }
 
-    function drawLine(street, max){
+    function drawLine(street){
         console.log('drawLine');
-        var color = '#CA2121';
+        var color = '#0000FF';
         var line = new Array();
         var p = new Array();
 
+        var buf = street.coordinates.split(',');
         var buf = street.coordinates.split('(')[1];
         buf = buf.split(')')[0];
         buf = buf.split(',');
@@ -128,303 +159,4 @@ $(document).ready(function(){
         polylines.push(newLine);
         newLine.addTo(map);
     }
-
-
-
-
-
-
-
-
-    function getPointsByTourism() {
-            console.log('getPointsByTourism ' + value);
-            $.ajax({
-                type: 'GET',
-                url: POINTS_TOURISM_URL + value,
-                dataType: "json", // data type of response
-                success: renderMarkers,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR, textStatus, errorThrown);
-                    alert('findAll: ' + textStatus);
-                }
-            });
-    }
-
-    function getPointsByAmenity() {
-            console.log('getPointsByAmenity ' + value);
-            $.ajax({
-                type: 'GET',
-                url: POINTS_AMENITY_URL + value,
-                dataType: "json", // data type of response
-                success: renderMarkers,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR, textStatus, errorThrown);
-                    alert('findAll: ' + textStatus);
-                }
-            });
-    }
-
-    function getPointsByHistoric() {
-            console.log('getPointsByHistoric');
-            $.ajax({
-                type: 'GET',
-                url: POINTS_HISTORIC_URL + value,
-                dataType: "json", // data type of response
-                success: renderMarkers,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR, textStatus, errorThrown);
-                    alert('findAll: ' + textStatus);
-                }
-            });
-    }
-
-    function getPointsByShop() {
-            console.log('getPointsByShop');
-            $.ajax({
-                type: 'GET',
-                url: POINTS_SHOP_URL + value,
-                dataType: "json", // data type of response
-                success: renderMarkers,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR, textStatus, errorThrown);
-                    alert('findAll: ' + textStatus);
-                }
-            });
-    }
-
-    function getPointsByLeisure() {
-            console.log('getPointsByLeisure');
-            $.ajax({
-                type: 'GET',
-                url: POINTS_LEISURE_URL + value,
-                dataType: "json", // data type of response
-                success: renderMarkers,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR, textStatus, errorThrown);
-                    alert('findAll: ' + textStatus);
-                }
-            });
-    }
-
-    function getStreets() {
-            console.log('getStreets');
-            $.ajax({
-                type: 'GET',
-                url: STREETS_URL,
-                dataType: "json", // data type of response
-                success: renderStreets,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR, textStatus, errorThrown);
-                    alert('findAll: ' + textStatus);
-                }
-            });
-    }
-function setTagAndValue(){
-    var val = $('#place').val();
-        // tag tourism
-        if(val == 'Мотель') {
-            tag = 'tourism';
-            value = 'motel'
-        }
-        if(val == 'Хостел') {
-            tag = 'tourism';
-            value = 'hostel'
-        }
-        if(val == 'Отель') {
-            tag = 'tourism';
-            value = 'hotel'
-        }
-        if(val == 'Гостевой дом') {
-            tag = 'tourism';
-            value = 'guest_house'
-        }
-        if(val == 'Галлерея') {
-            tag = 'tourism';
-            value = 'gallery'
-        }
-        if(val == 'Интересные места') {
-            tag = 'tourism';
-            value = 'attraction'
-        }
-        if(val == 'Музей') {
-            tag = 'tourism';
-            value = 'museum'
-        }
-        // tag historic
-        if(val == 'Поле битвы') {
-            tag = 'historic';
-            value = 'battlefield'
-        }
-        if(val == 'Замок') {
-            tag = 'historic';
-            value = 'castle'
-        }
-        if(val == 'Мемориал ВОВ') {
-            tag = 'historic';
-            value = 'memorial'
-        }
-        if(val == 'Исторический памятник') {
-            tag = 'historic';
-            value = 'monument'
-        }
-        if(val == 'Руины') {
-            tag = 'historic';
-            value = 'ruins'
-        }
-        // tag shop
-        if(val == 'Супермаркет') {
-            tag = 'shop';
-            value = 'supermarket'
-        }
-        if(val == 'Магазин одежды') {
-            tag = 'shop';
-            value = 'clothes'
-        }
-        if(val == 'Ювелирный магазин') {
-            tag = 'shop';
-            value = 'jewelry'
-        }
-        if(val == 'Магазин часов') {
-            tag = 'shop';
-            value = 'watches'
-        }
-        if(val == 'Магазин косметики') {
-            tag = 'shop';
-            value = 'cosmetics'
-        }
-        if(val == 'Книжный магазин') {
-            tag = 'shop';
-            value = 'books'
-        }
-        if(val == 'Табачный магазин') {
-            tag = 'shop';
-            value = 'tobacco'
-        }
-        if(val == 'Магазин алкогольной продукции') {
-            tag = 'shop';
-            value = 'alcohol'
-        }
-        if(val == 'Булочная') {
-            tag = 'shop';
-            value = 'bakery'
-        }
-        if(val == 'Фотостудия') {
-            tag = 'shop';
-            value = 'photo'
-        }
-        if(val == 'Магазин компьютеров') {
-            tag = 'shop';
-            value = 'computer'
-        }
-        if(val == 'Магазин мобильных телефонов') {
-            tag = 'shop';
-            value = 'mobile_phone'
-        }
-        // tag amenity
-        if(val == 'Бар') {
-            tag = 'amenity';
-            value = 'bar'
-        }
-        if(val == 'Барбекю') {
-            tag = 'amenity';
-            value = 'bbq'
-        }
-        if(val == 'Кафе') {
-            tag = 'amenity';
-            value = 'cafe'
-        }
-        if(val == 'Фастфуд') {
-            tag = 'amenity';
-            value = 'fast_food'
-        }
-        if(val == 'Паб') {
-            tag = 'amenity';
-            value = 'pub'
-        }
-        if(val == 'Ресторан') {
-            tag = 'amenity';
-            value = 'restaurant'
-        }
-        if(val == 'Библиотека') {
-            tag = 'amenity';
-            value = 'library'
-        }
-        if(val == 'АЗС') {
-            tag = 'amenity';
-            value = 'fuel'
-        }
-        if(val == 'АТМ') {
-            tag = 'amenity';
-            value = 'atm'
-        }
-        if(val == 'Банк') {
-            tag = 'amenity';
-            value = 'bank'
-        }
-        if(val == 'Больница') {
-            tag = 'amenity';
-            value = 'hospital'
-        }
-        if(val == 'Поликлиника') {
-            tag = 'amenity';
-            value = 'clinic'
-        }
-        if(val == 'Стоматолог') {
-            tag = 'amenity';
-            value = 'dentist'
-        }
-        if(val == 'Аптека') {
-            tag = 'amenity';
-            value = 'pharmacy'
-        }
-        if(val == 'Ветеренарная больница') {
-            tag = 'amenity';
-            value = 'veterinary'
-        }
-        if(val == 'Казино') {
-            tag = 'amenity';
-            value = 'casino'
-        }
-        if(val == 'Кинотеатр') {
-            tag = 'amenity';
-            value = 'cinema'
-        }
-        if(val == 'Ночной клуб') {
-            tag = 'amenity';
-            value = 'nightclub'
-        }
-        if(val == 'Милиция') {
-            tag = 'amenity';
-            value = 'police'
-        }
-        if(val == 'Почта') {
-            tag = 'amenity';
-            value = 'post_office'
-        }
-        if(val == 'Туалет') {
-            tag = 'amenity';
-            value = 'toilets'
-        }
-        if(val == 'Театр') {
-            tag = 'amenity';
-            value = 'theatre'
-        }
-        // tag leisure
-        if(val == 'Тренажёрный зал') {
-            tag = 'leisure';
-            value = 'fitness_centre'
-        }
-        if(val == 'Стадион') {
-            tag = 'leisure';
-            value = 'stadium'
-        }
-        if(val == 'Сауна') {
-            tag = 'leisure';
-            value = 'sauna'
-        }
-
-        if(tag == null && value == null)
-            alert('Выберите место из списка');
-        console.log(tag + ' ' + value);
-}
 });

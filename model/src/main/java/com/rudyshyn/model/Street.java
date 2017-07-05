@@ -4,14 +4,18 @@ public class Street {
     private Long id; // Является так же значением edge
     private String name;
     private String coordinates;
-    private int source;
-    private int target;
-    private int node; // Идентефикатор узла в пути
+    private Long source;
+    private Long target;
+    private Long node; // Идентефикатор узла в пути. Не используется
 
     public Street() {
     }
 
-    public Street(Long id, int node) {
+    public Street(String coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public Street(Long id, Long node) {
         this.id = id;
         this.node = node;
     }
@@ -21,7 +25,7 @@ public class Street {
         this.coordinates = coordinates;
     }
 
-    public Street(Long id, String name, String coordinates, int source, int target) {
+    public Street(Long id, String name, String coordinates, Long source, Long target) {
         this.id = id;
         this.name = name;
         this.coordinates = coordinates;
@@ -29,7 +33,7 @@ public class Street {
         this.target = target;
     }
 
-    public Street(Long id, String name, String coordinates, int source, int target, int node) {
+    public Street(Long id, String name, String coordinates, Long source, Long target, Long node) {
         this.id = id;
         this.name = name;
         this.coordinates = coordinates;
@@ -62,27 +66,27 @@ public class Street {
         this.coordinates = coordinates;
     }
 
-    public int getSource() {
+    public Long getSource() {
         return source;
     }
 
-    public void setSource(int source) {
+    public void setSource(Long source) {
         this.source = source;
     }
 
-    public int getTarget() {
+    public Long getTarget() {
         return target;
     }
 
-    public void setTarget(int target) {
+    public void setTarget(Long target) {
         this.target = target;
     }
 
-    public int getNode() {
+    public Long getNode() {
         return node;
     }
 
-    public void setNode(int node) {
+    public void setNode(Long node) {
         this.node = node;
     }
 }

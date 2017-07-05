@@ -26,71 +26,26 @@ public class GeoServiceImpl implements GeoService {
         this.streetDao = streetDao;
     }
 
-    private List<Point> points = new ArrayList<>();
-    List<Street> streets = new ArrayList<>();
+    private List<Street> streets = new ArrayList<>();
 
-    @Override
+   /* @Override
     public List<Point> getPointsByAmenity(String amenity) {
         points = pointDao.getPointsByAmenity(amenity);
         return points;
-    }
+    }*/
 
     @Override
-    public List<Point> getPointsByTourism(String tourism) {
-        points = pointDao.getPointsByTourism(tourism);
-        return points;
-    }
-
-    @Override
-    public List<Point> getPointsByHistoric(String historic) {
-        points = pointDao.getPointsByHistoric(historic);
-        return points;
-    }
-
-    @Override
-    public List<Point> getPointsByShop(String shop) {
-        points = pointDao.getPointsByShop(shop);
-        return points;
-    }
-
-    @Override
-    public List<Point> getPointsByLeisure(String leisure) {
-        points = pointDao.getPointsByLeisure(leisure);
-        return points;
-    }
-
-    @Override
-    public List<Street> getRouteByDijkstra(String name1, String name2) {
+    public List<Street> getRouteByDijkstra(Long name1, Long name2) {
         streets = streetDao.getRouteByDijkstra(name1, name2);
         return streets;
     }
 
-   /* private List<Point> deleteSamePoints(List<Point> points){
-        List<Point> newPoints = new ArrayList<>();
-        Point buf;
-        for(int i = 0; i < points.size(); i++){
-            buf = points.get(i);
-            for(int j = i; j < points.size(); j++){
-                if(buf.getId() == points.get(j).getId()){
-                    if (buf.getDistance() > points.get(j).getDistance()){
-                        buf = points.get(j);
-                    }
-                }
-            }
-            if(!contains(newPoints, buf.getId())){
-                newPoints.add(buf);
-            }
-        }
-        return newPoints;
+    @Override
+    public List<Street> searchSegment(String firstCoords, String secondCoords) {
+        String first[] = firstCoords.split(",");
+        String second[] = secondCoords.split(",");
+        streets.add(streetDao.searchSegment( first[0],  first[1]));
+        streets.add(streetDao.searchSegment(second[0], second[1]));
+        return streets;
     }
-
-
-    private boolean contains(List<Point> points, long id){
-        for (Point point : points) {
-            if(point.getId() == id)
-                return  true;
-        }
-        return false;
-    }
-    */
 }

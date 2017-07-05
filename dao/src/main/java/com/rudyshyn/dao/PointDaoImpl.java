@@ -30,10 +30,14 @@ public class PointDaoImpl implements PointDao {
     @Value("${getPointsByLeisure.sql}")
     private String GET_POINTS_BY_LEISURE_SQL;
 
+
+    //  Не используются в работе. Служат для объединения проектов.
+
     public PointDaoImpl(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
         namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     }
+
     @Override
     public List<Point> getPointsByAmenity(String amenity) {
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource("amenity", amenity);
